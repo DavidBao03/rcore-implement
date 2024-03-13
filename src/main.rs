@@ -7,11 +7,16 @@ use log::*;
 
 #[macro_use]
 mod console;
+pub mod batch;
 mod lang_items;
 mod logging;
 mod sbi;
+mod sync;
+pub mod syscall;
+pub mod trap;
 
 global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("link_app.S"));
 
 #[no_mangle]
 pub fn rust_main() -> ! {
@@ -48,6 +53,10 @@ pub fn rust_main() -> ! {
         boot_stack_top as usize, boot_stack as usize
     );
     info!("[kernel] .bss [{:#x}, {:#x})", sbss as usize, ebss as usize);
+
+    trap::init();
+    batch::init();
+    batch::run_next_app();
     
     panic!("Shutdown machine!");
 }
